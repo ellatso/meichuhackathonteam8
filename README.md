@@ -26,6 +26,7 @@ GLIDE-Lite/
 │   ├── app_glide.py          # FastAPI 主應用
 │   └── requirements.txt      # Python 依賴
 ├── frontend/                  # React 前端
+│   ├── index.html
 │   ├── src/
 │   │   ├── pages/Glide.jsx   # 主控制頁面
 │   │   └── components/CorridorCanvas.jsx  # 動畫組件
