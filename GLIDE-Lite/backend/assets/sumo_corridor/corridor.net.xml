@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- GLIDE-Lite 三號誌廊道路網 -->
+<net version="1.16" junctionCornerDetail="5" limitTurnSpeed="5.50" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/net_file.xsd">
+
+    <location netOffset="-300.00,0.00" convBoundary="-600.00,-100.00,600.00,100.00" origBoundary="-600.00,-100.00,600.00,100.00"/>
+
+    <type id="arterial" priority="7" numLanes="2" speed="13.89" disallow="pedestrian"/>
+    <type id="local" priority="3" numLanes="1" speed="8.33" disallow="pedestrian"/>
+
+    <!-- 邊緣定義 -->
+    <edge id=":J1_0" function="internal">
+        <lane id=":J1_0_0" index="0" speed="13.89" length="6.40" shape="-306.40,1.60 -300.00,1.60"/>
+        <lane id=":J1_0_1" index="1" speed="13.89" length="6.40" shape="-306.40,-1.60 -300.00,-1.60"/>
+    </edge>
+    <edge id=":J1_1" function="internal">
+        <lane id=":J1_1_0" index="0" speed="8.33" length="6.40" shape="-301.60,6.40 -301.60,0.00"/>
+    </edge>
+    <edge id=":J1_2" function="internal">
+        <lane id=":J1_2_0" index="0" speed="8.33" length="6.40" shape="-298.40,-6.40 -298.40,0.00"/>
+    </edge>
+
+    <edge id=":J2_0" function="internal">
+        <lane id=":J2_0_0" index="0" speed="13.89" length="6.40" shape="-6.40,1.60 0.00,1.60"/>
+        <lane id=":J2_0_1" index="1" speed="13.89" length="6.40" shape="-6.40,-1.60 0.00,-1.60"/>
+    </edge>
+    <edge id=":J2_1" function="internal">
+        <lane id=":J2_1_0" index="0" speed="8.33" length="6.40" shape="-1.60,6.40 -1.60,0.00"/>
+    </edge>
+    <edge id=":J2_2" function="internal">
+        <lane id=":J2_2_0" index="0" speed="8.33" length="6.40" shape="1.60,-6.40 1.60,0.00"/>
+    </edge>
+
+    <edge id=":J3_0" function="internal">
+        <lane id=":J3_0_0" index="0" speed="13.89" length="6.40" shape="293.60,1.60 300.00,1.60"/>
+        <lane id=":J3_0_1" index="1" speed="13.89" length="6.40" shape="293.60,-1.60 300.00,-1.60"/>
+    </edge>
+    <edge id=":J3_1" function="internal">
+        <lane id=":J3_1_0" index="0" speed="8.33" length="6.40" shape="298.40,6.40 298.40,0.00"/>
+    </edge>
+    <edge id=":J3_2" function="internal">
+        <lane id=":J3_2_0" index="0" speed="8.33" length="6.40" shape="301.60,-6.40 301.60,0.00"/>
+    </edge>
+
+    <!-- 主幹道邊緣 (W→E) -->
+    <edge id="E1" from="W1" to="J1" priority="7" type="arterial">
+        <lane id="E1_0" index="0" speed="13.89" length="293.60" shape="-600.00,1.60 -306.40,1.60"/>
+        <lane id="E1_1" index="1" speed="13.89" length="293.60" shape="-600.00,-1.60 -306.40,-1.60"/>
+    </edge>
+    <edge id="E2" from="J1" to="J2" priority="7" type="arterial">
+        <lane id="E2_0" index="0" speed="13.89" length="293.60" shape="-300.00,1.60 -6.40,1.60"/>
+        <lane id="E2_1" index="1" speed="13.89" length="293.60" shape="-300.00,-1.60 -6.40,-1.60"/>
+    </edge>
+    <edge id="E3" from="J2" to="J3" priority="7" type="arterial">
+        <lane id="E3_0" index="0" speed="13.89" length="293.60" shape="0.00,1.60 293.60,1.60"/>
+        <lane id="E3_1" index="1" speed="13.89" length="293.60" shape="0.00,-1.60 293.60,-1.60"/>
+    </edge>
+    <edge id="E4" from="J3" to="E1" priority="7" type="arterial">
+        <lane id="E4_0" index="0" speed="13.89" length="300.00" shape="300.00,1.60 600.00,1.60"/>
+        <lane id="E4_1" index="1" speed="13.89" length="300.00" shape="300.00,-1.60 600.00,-1.60"/>
+    </edge>
+
+    <!-- 側向道路 (N→S) -->
+    <edge id="N1" from="N1_start" to="J1" priority="3" type="local">
+        <lane id="N1_0" index="0" speed="8.33" length="93.60" shape="-301.60,100.00 -301.60,6.40"/>
+    </edge>
+    <edge id="S1" from="J1" to="S1_end" priority="3" type="local">
+        <lane id="S1_0" index="0" speed="8.33" length="93.60" shape="-298.40,0.00 -298.40,-100.00"/>
+    </edge>
+
+    <edge id="N2" from="N2_start" to="J2" priority="3" type="local">
+        <lane id="N2_0" index="0" speed="8.33" length="93.60" shape="-1.60,100.00 -1.60,6.40"/>
+    </edge>
+    <edge id="S2" from="J2" to="S2_end" priority="3" type="local">
+        <lane id="S2_0" index="0" speed="8.33" length="93.60" shape="1.60,0.00 1.60,-100.00"/>
+    </edge>
+
+    <edge id="N3" from="N3_start" to="J3" priority="3" type="local">
+        <lane id="N3_0" index="0" speed="8.33" length="93.60" shape="298.40,100.00 298.40,6.40"/>
+    </edge>
+    <edge id="S3" from="J3" to="S3_end" priority="3" type="local">
+        <lane id="S3_0" index="0" speed="8.33" length="93.60" shape="301.60,0.00 301.60,-100.00"/>
+    </edge>
+
+    <!-- 節點定義 -->
+    <junction id="E1" type="dead_end" x="600.00" y="0.00" incLanes="E4_0 E4_1" intLanes="" shape="600.00,3.20 600.00,-3.20"/>
+    
+    <junction id="J1" type="traffic_light" x="-300.00" y="0.00" incLanes="E1_0 E1_1 N1_0 S1_0" intLanes=":J1_0_0 :J1_0_1 :J1_1_0 :J1_2_0" shape="-300.00,3.20 -300.00,-3.20 -298.40,-3.20 -298.40,0.00 -301.60,0.00 -301.60,3.20 -306.40,3.20 -306.40,-3.20">
+        <request index="0" response="0000" foes="0000" cont="0"/>
+        <request index="1" response="0000" foes="0000" cont="0"/>
+        <request index="2" response="0000" foes="0000" cont="0"/>
+        <request index="3" response="0000" foes="0000" cont="0"/>
+    </junction>
+
+    <junction id="J2" type="traffic_light" x="0.00" y="0.00" incLanes="E2_0 E2_1 N2_0 S2_0" intLanes=":J2_0_0 :J2_0_1 :J2_1_0 :J2_2_0" shape="0.00,3.20 0.00,-3.20 1.60,-3.20 1.60,0.00 -1.60,0.00 -1.60,3.20 -6.40,3.20 -6.40,-3.20">
+        <request index="0" response="0000" foes="0000" cont="0"/>
+        <request index="1" response="0000" foes="0000" cont="0"/>
+        <request index="2" response="0000" foes="0000" cont="0"/>
+        <request index="3" response="0000" foes="0000" cont="0"/>
+    </junction>
+
+    <junction id="J3" type="traffic_light" x="300.00" y="0.00" incLanes="E3_0 E3_1 N3_0 S3_0" intLanes=":J3_0_0 :J3_0_1 :J3_1_0 :J3_2_0" shape="300.00,3.20 300.00,-3.20 301.60,-3.20 301.60,0.00 298.40,0.00 298.40,3.20 293.60,3.20 293.60,-3.20">
+        <request index="0" response="0000" foes="0000" cont="0"/>
+        <request index="1" response="0000" foes="0000" cont="0"/>
+        <request index="2" response="0000" foes="0000" cont="0"/>
+        <request index="3" response="0000" foes="0000" cont="0"/>
+    </junction>
+
+    <!-- 邊界節點 -->
+    <junction id="N1_start" type="dead_end" x="-301.60" y="100.00" incLanes="" intLanes="" shape="-301.60,100.00 -301.60,100.00"/>
+    <junction id="N2_start" type="dead_end" x="-1.60" y="100.00" incLanes="" intLanes="" shape="-1.60,100.00 -1.60,100.00"/>
+    <junction id="N3_start" type="dead_end" x="298.40" y="100.00" incLanes="" intLanes="" shape="298.40,100.00 298.40,100.00"/>
+    
+    <junction id="S1_end" type="dead_end" x="-298.40" y="-100.00" incLanes="S1_0" intLanes="" shape="-298.40,-100.00 -298.40,-100.00"/>
+    <junction id="S2_end" type="dead_end" x="1.60" y="-100.00" incLanes="S2_0" intLanes="" shape="1.60,-100.00 1.60,-100.00"/>
+    <junction id="S3_end" type="dead_end" x="301.60" y="-100.00" incLanes="S3_0" intLanes="" shape="301.60,-100.00 301.60,-100.00"/>
+    
+    <junction id="W1" type="dead_end" x="-600.00" y="0.00" incLanes="" intLanes="" shape="-600.00,-3.20 -600.00,3.20"/>
+
+    <!-- 交通號誌程式 (預設固定時制) -->
+    <tlLogic id="J1" type="static" programID="0" offset="0">
+        <phase duration="54" state="GGrrr"/>
+        <phase duration="6" state="yyrrr"/>
+        <phase duration="2" state="rrrrr"/>
+        <phase duration="24" state="rrGGG"/>
+        <phase duration="4" state="rryyy"/>
+    </tlLogic>
+
+    <tlLogic id="J2" type="static" programID="0" offset="0">
+        <phase duration="54" state="GGrrr"/>
+        <phase duration="6" state="yyrrr"/>
+        <phase duration="2" state="rrrrr"/>
+        <phase duration="24" state="rrGGG"/>
+        <phase duration="4" state="rryyy"/>
+    </tlLogic>
+
+    <tlLogic id="J3" type="static" programID="0" offset="0">
+        <phase duration="54" state="GGrrr"/>
+        <phase duration="6" state="yyrrr"/>
+        <phase duration="2" state="rrrrr"/>
+        <phase duration="24" state="rrGGG"/>
+        <phase duration="4" state="rryyy"/>
+    </tlLogic>
+
+</net>

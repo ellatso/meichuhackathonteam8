@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- GLIDE-Lite 廊道交通需求與路線 -->
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.dlr.de/xsd/routes_file.xsd">
+
+    <!-- 車輛類型定義 -->
+    <vType id="passenger" accel="2.6" decel="4.5" sigma="0.5" length="4.5" maxSpeed="50.0" color="0,0,1"/>
+    <vType id="bus" accel="1.8" decel="3.5" sigma="0.3" length="12.0" maxSpeed="40.0" color="1,0.5,0" personCapacity="80"/>
+
+    <!-- 路線定義 -->
+    <!-- 主幹道 West to East -->
+    <route id="main_we" edges="E1 E2 E3 E4"/>
+    
+    <!-- 側向道路 North to South -->
+    <route id="n1_s1" edges="N1 S1"/>
+    <route id="n2_s2" edges="N2 S2"/>
+    <route id="n3_s3" edges="N3 S3"/>
+    
+    <!-- 公車路線 (含停靠站) -->
+    <route id="bus_main" edges="E1 E2 E3 E4"/>
+
+    <!-- 公車停靠站定義 -->
+    <busStop id="stop_12" lane="E2_0" startPos="100" endPos="120" name="Stop between J1-J2"/>
+    <busStop id="stop_23" lane="E3_0" startPos="100" endPos="120" name="Stop between J2-J3"/>
+
+    <!-- 交通流量定義 -->
+    <!-- 主幹道車流 (1200 vph ≈ 每 3 秒一台) -->
+    <flow id="main_flow" route="main_we" begin="0" end="3600" vehsPerHour="1200" type="passenger"/>
+    
+    <!-- 側向車流 (每條路 400 vph ≈ 每 9 秒一台) -->
+    <flow id="n1_flow" route="n1_s1" begin="0" end="3600" vehsPerHour="200" type="passenger"/>
+    <flow id="n2_flow" route="n2_s2" begin="0" end="3600" vehsPerHour="200" type="passenger"/>
+    <flow id="n3_flow" route="n3_s3" begin="0" end="3600" vehsPerHour="200" type="passenger"/>
+    
+    <!-- 公車班次 (目標 6 分鐘班距) -->
+    <vehicle id="bus_1" type="bus" route="bus_main" depart="30" color="orange">
+        <stop busStop="stop_12" duration="20"/>
+        <stop busStop="stop_23" duration="20"/>
+    </vehicle>
+    
+    <vehicle id="bus_2" type="bus" route="bus_main" depart="390" color="orange">
+        <stop busStop="stop_12" duration="20"/>
+        <stop busStop="stop_23" duration="20"/>
+    </vehicle>
+    
+    <vehicle id="bus_3" type="bus" route="bus_main" depart="750" color="orange">
+        <stop busStop="stop_12" duration="20"/>
+        <stop busStop="stop_23" duration="20"/>
+    </vehicle>
+    
+    <vehicle id="bus_4" type="bus" route="bus_main" depart="1110" color="orange">
+        <stop busStop="stop_12" duration="20"/>
+        <stop busStop="stop_23" duration="20"/>
+    </vehicle>
+    
+    <vehicle id="bus_5" type="bus" route="bus_main" depart="1470" color="orange">
+        <stop busStop="stop_12" duration="20"/>
+        <stop busStop="stop_23" duration="20"/>
+    </vehicle>
+
+    <!-- 額外隨機車流 (增加變異性) -->
+    <flow id="random_main" route="main_we" begin="0" end="3600" probability="0.1" type="passenger"/>
+    
+</routes>

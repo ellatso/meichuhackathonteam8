@@ -1,0 +1,81 @@
+# GLIDE-Lite Backend Dependencies
+# Python 3.11+ required
+
+# FastAPI & Web Server
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+
+# CORS & Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Data Processing & Math
+numpy==1.25.2
+pandas==2.1.3
+scipy==1.11.4
+
+# SUMO Traffic Simulation
+# Note: SUMO must be installed separately
+# Download from: https://eclipse.dev/sumo/
+# Set SUMO_HOME environment variable
+sumolib==1.18.0
+traci==1.18.0
+
+# Data Validation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# HTTP Client (for testing)
+httpx==0.25.2
+requests==2.31.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Development Tools
+black==23.11.0
+flake8==6.1.0
+mypy==1.7.1
+
+# Logging & Monitoring
+structlog==23.2.0
+
+# File I/O
+pathlib2==2.3.7
+
+# XML Processing (for SUMO files)
+lxml==4.9.3
+
+# Math & Statistics
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Performance
+psutil==5.9.6
+
+# Type Hints
+typing-extensions==4.8.0
+
+# Optional: Database (if needed for data persistence)
+# sqlalchemy==2.0.23
+# sqlite3 (built-in)
+
+# Optional: Redis (for caching/session management)
+# redis==5.0.1
+
+# Optional: Prometheus metrics
+# prometheus-client==0.19.0
+
+# Platform-specific dependencies
+# Windows
+pywin32==306; sys_platform == "win32"
+
+# Development dependencies (install with: pip install -r requirements-dev.txt)
+# Create requirements-dev.txt with these:
+# jupyter==1.0.0
+# ipython==8.17.2
+# notebook==7.0.6

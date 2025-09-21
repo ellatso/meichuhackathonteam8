@@ -1,0 +1,211 @@
+
+
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+from typing import Dict, Any, List, Optional
+import uuid, math, random
+import numpy as np
+
+app = FastAPI(title="GLIDE-Lite API", version="1.2.0")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True,
+                   allow_methods=["*"], allow_headers=["*"])
+
+# ---- GLIDE-Lite offsets（簡化版，與前端相容）----
+def simple_compute_offsets(distances, cycle=90, speed_kmh=40):
+    v = speed_kmh / 3.6
+    offsets = {"J1": 0}
+    acc = 0.0
+    for i, d in enumerate(distances):
+        acc += d / v
+        offsets[f"J{i+2}"] = int(acc % cycle)
+    return offsets
+
+class PlanRequest(BaseModel):
+    cycle: int = Field(90, ge=30, le=180)
+    v_prog_kmh: float = Field(40, ge=20, le=80)
+
+class SimRequest(BaseModel):
+    mode: str = Field(..., pattern="^(fixed|glide|glide_tsp)$")
+    steps: int = Field(180, ge=60, le=1800)
+    cycle: int = Field(90, ge=30, le=180)
+    v_prog_kmh: float = Field(40, ge=20, le=80)
+    cars_per_hour: Optional[int] = Field(None, ge=0)        # 單向單車道 vph
+    bus_headway_sec: Optional[int] = Field(None, ge=60)     # 目標頭距（秒）
+
+@app.get("/health")
+async def health(): return {"ok": True, "version": app.version}
+
+@app.post("/glide/plan")
+async def glide_plan(req: PlanRequest):
+    distances = [300, 280]
+    offsets = simple_compute_offsets(distances, req.cycle, req.v_prog_kmh)
+    width = int(req.cycle * 0.6)
+    band = [{"node": nid, "start": off, "end": min(req.cycle, off+width), "width": width}
+            for nid, off in offsets.items()]
+    return {"offsets": offsets, "green_band": band}
+
+# ========= 核心：尖峰但合理分散的流量 + 公車可視 =========
+@app.post("/glide/sim")
+async def run_sim(req: SimRequest):
+    try:
+        session_id = f"sim_{uuid.uuid4().hex[:8]}"
+        C = req.cycle
+        G = int(0.6 * C)             # 主線綠窗長度（例如 54s）
+        V = req.v_prog_kmh / 3.6     # m/s（畫布等同單位）
+        V_BUS = V * 0.9
+
+        offsets = {"J1":0,"J2":0,"J3":0} if req.mode=="fixed" \
+                  else simple_compute_offsets([300, 280], C, req.v_prog_kmh)
+
+        # ---- 目標流量（尖峰一線道常見 1500~1800 vph）----
+        target_vph = req.cars_per_hour if req.cars_per_hour is not None else 1700
+        # 綠窗內的平均頭距（用以近似達到 target_vph）
+        # 每小時 cycles = 3600/C；每綠窗可放 ~ G/mu 台；=> vph ≈ (G/mu) * (3600/C)
+        mu = (G * 3600.0 / C) / max(1, target_vph)       # 期望頭距（秒）
+        mu = float(np.clip(mu, 1.6, 3.2))                # 合理範圍（1.6~3.2s）
+        sigma = 0.35                                     # 對數常態的散佈，越大越「抖」
+        # 對數常態參數（均值/標準差在實際秒域）
+        # 我們用近似法：直接用 lognormal(mean=mu, std=0.5*mu) 的簡化，視覺上足夠
+        def sample_headway():
+            # 給點抖動，但限制下限，避免 0.5s 這種不合理頭距
+            return float(np.clip(np.random.lognormal(mean=np.log(mu), sigma=sigma), 1.2, 6.0))
+
+        STEPS = min(req.steps, 1200)
+
+        # ---- 預生「綠窗放行」的車流出發時間（秒.小數）----
+        car_depart_times: List[float] = []
+        k = 0
+        while True:
+            t_green_start = k * C - offsets["J1"]   # 以 J1 為上游交叉口
+            t_green_end = t_green_start + G
+            if t_green_start > STEPS: break
+            # 對每個綠窗，由頭距累積生成
+            t_cur = max(0.0, t_green_start)
+            # 隨機在綠窗一開始留一點空（排隊起動延遲）讓視覺自然
+            t_cur += random.uniform(0.3, 1.0)
+            while t_cur < t_green_end and t_cur < STEPS:
+                # 子秒出發時間（避免同一秒瞬間「一坨」）
+                car_depart_times.append(t_cur + random.uniform(-0.15, 0.15))
+                t_cur += sample_headway()
+            k += 1
+
+        car_depart_times.sort()
+
+        # ---- 公車時刻表（目標頭距 ± 抖動 + 抗群聚）----
+        H = req.bus_headway_sec if req.bus_headway_sec is not None else 300  # 5 分
+        DELTA = 90      # 容忍帶（±90s）
+        HOLD_SEC = 15   # 太近的話晚發 15s（BUS_HOLD）
+        bus_times: List[float] = []
+        t_bus = 0.0
+        while t_bus < STEPS:
+            jitter = random.uniform(-40, 40)        # 自然的早晚
+            next_t = max(0.0, t_bus + H + jitter)
+            # 抗群聚：若與上一班太近，直接延後 HOLD_SEC
+            if bus_times and (next_t - bus_times[-1]) < (H - DELTA):
+                next_t += HOLD_SEC
+            bus_times.append(next_t)
+            t_bus = next_t
+
+        # ---- 模擬循環 ----
+        X_MIN, X_MAX = -420.0, 420.0
+        vehicles: List[Dict[str, Any]] = []   # {id,x,y,kind,v}
+        frames: List[Dict[str, Any]] = []
+        events: List[Dict[str, Any]] = []
+        arrived = 0
+
+        car_i = 0
+        bus_i = 0
+
+        def tls_state(node_id: str, t_int: int) -> str:
+            off = offsets.get(node_id, 0)
+            tau = (t_int + off) % C
+            if tau < G: return "G"
+            if tau < G + 6: return "y"
+            return "r"
+
+        for t in range(STEPS):
+            # 新車進場（這 1 秒內出發的車全加進來，且位置帶子秒偏移）
+            while car_i < len(car_depart_times) and car_depart_times[car_i] < t + 1.0:
+                dt = max(0.0, car_depart_times[car_i] - t)      # 本秒內的子秒
+                vehicles.append({
+                    "id": f"car_{car_i}",
+                    "x": X_MIN + V * dt,      # 子秒位移避免重疊
+                    "y": random.uniform(-2.0, 2.0),  # 輕微縱向抖動
+                    "kind": "car",
+                    "v": V * random.uniform(0.9, 1.05)
+                })
+                car_i += 1
+
+            # 公車進場（確保看得到）
+            while bus_i < len(bus_times) and bus_times[bus_i] < t + 1.0:
+                dt = max(0.0, bus_times[bus_i] - t)
+                # 抗群聚 & TSP 記錄：若這班距上一班很晚，且 mode=glide_tsp，記一個延綠事件
+                if bus_i > 0:
+                    hw = bus_times[bus_i] - bus_times[bus_i-1]
+                    if req.mode == "glide_tsp" and hw > (H + DELTA):
+                        events.append({"t": t, "type": "TSP_EXTEND", "node": "J2", "sec": 6, "headway": round(hw)})
+                    elif hw < (H - DELTA):
+                        events.append({"t": t, "type": "BUS_HOLD", "node": "J1", "sec": HOLD_SEC, "headway": round(hw)})
+
+                vehicles.append({
+                    "id": f"bus_{bus_i}",
+                    "x": X_MIN + V_BUS * dt,
+                    "y": 0.0,
+                    "kind": "bus",
+                    "v": V_BUS
+                })
+                bus_i += 1
+
+            # 交通號誌
+            signals = [{"node": nid, "state": tls_state(nid, t)} for nid in ["J1","J2","J3"]]
+
+            # 前進（非常簡化，僅為視覺 demo）
+            still = []
+            for v in vehicles:
+                v["x"] += v["v"] * 1.0
+                if v["x"] <= X_MAX + 30:
+                    still.append(v)
+                else:
+                    arrived += 1
+            vehicles = still
+
+            # 渲染（抽樣保流暢 + **永遠包含公車**）
+            buses = [v for v in vehicles if v["kind"] == "bus"]
+            cars = [v for v in vehicles if v["kind"] == "car"]
+            render: List[Dict[str, Any]] = []
+            # 先放所有公車
+            render.extend({"id": v["id"], "x": v["x"], "y": v["y"], "kind": v["kind"]} for v in buses)
+            # 再抽樣汽車（最多 ~250 台避免掉禎）
+            max_cars = 250 - len(render)
+            if max_cars < 0: max_cars = 0
+            if len(cars) > max_cars and max_cars > 0:
+                step = max(1, len(cars)//max_cars)
+                for k, v in enumerate(cars):
+                    if k % step == 0:
+                        render.append({"id": v["id"], "x": v["x"], "y": v["y"], "kind": v["kind"]})
+            else:
+                render.extend({"id": v["id"], "x": v["x"], "y": v["y"], "kind": v["kind"]} for v in cars)
+
+            frames.append({"t": t, "signals": signals, "vehicles": render})
+
+        # KPI（示意）
+        cycles = STEPS / C
+        kpis = {
+            "mode": req.mode,
+            "frames": len(frames),
+            "avg_discharge_headway_s": round(mu, 2),
+            "estimated_vph": int((G/mu) * (3600.0/C)),
+            "total_arrived": arrived,
+            "buses_spawned": bus_i,
+            "tsp_events": len([e for e in events if e["type"] == "TSP_EXTEND"]),
+            "bus_hold_events": len([e for e in events if e["type"] == "BUS_HOLD"]),
+        }
+
+        return {"session_id": session_id, "frames": frames, "kpis": kpis, "events": events, "success": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8001, reload=True)
