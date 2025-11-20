@@ -2,7 +2,7 @@
 
 一個可演示的智慧交通信號控制系統，整合綠波控制與公車不群聚 TSP (Transit Signal Priority) 功能。
 
-## 🎯 專案特色
+##  專案特色
 
 - **三模式對比**：固定時制 vs GLIDE 綠波 vs GLIDE + TSP
 - **即時動畫**：車輛移動、信號變化、TSP 事件視覺化
@@ -10,7 +10,7 @@
 - **Web 介面**：React + Canvas 動畫，支援一鍵 Demo
 - **模擬後端**：SUMO 交通模擬 + FastAPI REST API
 
-## 📁 專案結構
+##  專案結構
 
 ```
 GLIDE-Lite/
@@ -43,7 +43,7 @@ GLIDE-Lite/
 └── README.md                 # 本文件
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 先決條件
 
@@ -98,7 +98,7 @@ conda install -c conda-forge sumo
 3. 點擊 "🎬 Demo 劇本 (三模式)" 按鈕
 4. 觀看 Fixed → GLIDE → GLIDE+TSP 自動演示
 
-## 🎭 Demo 劇本 (3 分鐘演示)
+##  Demo 劇本 (3 分鐘演示)
 
 ### 第一幕：Fixed 固定時制 (傳統)
 - **現象**：車隊「走走停停」，頻繁紅燈等待
@@ -307,7 +307,7 @@ npm install --legacy-peer-deps
 - 車輛數量超過 50 時啟用 LOD
 - 使用 Web Worker 處理大量數據
 
-## 📊 技術架構
+##  技術架構
 
 ### 演算法核心
 
